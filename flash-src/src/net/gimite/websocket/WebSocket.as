@@ -96,29 +96,24 @@ public class WebSocket extends EventDispatcher {
     this.headers = headers;
     
     if (proxyHost != null && proxyPort != 0){
-      if (scheme == "wss") {
-        fatal("wss with proxy is not supported");
-      }
       var proxySocket:RFC2817Socket = new RFC2817Socket();
       proxySocket.setProxyInfo(proxyHost, proxyPort);
-      proxySocket.addEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
-      rawSocket = socket = proxySocket;
+      rawSocket = proxySocket;
     } else {
       rawSocket = new Socket();
-      if (scheme == "wss") {
-        tlsConfig= new TLSConfig(TLSEngine.CLIENT,
-            null, null, null, null, null,
-            TLSSecurityParameters.PROTOCOL_VERSION);
-        tlsConfig.trustAllCertificates = true;
-        tlsConfig.ignoreCommonNameMismatch = true;
-        tlsSocket = new TLSSocket();
-        tlsSocket.addEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
-        socket = tlsSocket;
-      } else {
-        rawSocket.addEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
-        socket = rawSocket;
-      }
     }
+    if (scheme == "wss") {
+      tlsConfig= new TLSConfig(TLSEngine.CLIENT,
+          null, null, null, null, null,
+          TLSSecurityParameters.PROTOCOL_VERSION);
+      tlsConfig.trustAllCertificates = true;
+      tlsConfig.ignoreCommonNameMismatch = true;
+      tlsSocket = new TLSSocket();
+      socket = tlsSocket;
+    } else {
+      socket = rawSocket;
+    }
+    socket.addEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
     rawSocket.addEventListener(Event.CLOSE, onSocketClose);
     rawSocket.addEventListener(Event.CONNECT, onSocketConnect);
     rawSocket.addEventListener(IOErrorEvent.IO_ERROR, onSocketIoError);

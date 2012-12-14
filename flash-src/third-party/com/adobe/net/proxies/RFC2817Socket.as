@@ -68,6 +68,8 @@ package com.adobe.net.proxies
 		private var port:int = 0;
 		private var deferredEventHandlers:Object = new Object();
 		private var buffer:String = new String();
+		private var data_redirected:int = 0;
+		private var connect_redirected:int = 0;
 
 		/**
 		 * Construct a new RFC2817Socket object. If you pass in the host and the port,
@@ -177,6 +179,7 @@ package com.adobe.net.proxies
 			{
 				super.addEventListener(Event.CONNECT, deferredEventHandler.listener, deferredEventHandler.useCapture, deferredEventHandler.priority, deferredEventHandler.useWeakReference);			
 			}
+			this.connect_redirected = 1;
 		}
 		
 		private function redirectSocketDataEvent():void
@@ -187,11 +190,12 @@ package com.adobe.net.proxies
 			{
 				super.addEventListener(ProgressEvent.SOCKET_DATA, deferredEventHandler.listener, deferredEventHandler.useCapture, deferredEventHandler.priority, deferredEventHandler.useWeakReference);			
 			}
+			this.data_redirected = 1;
 		}
 		
 		public override function addEventListener(type:String, listener:Function, useCapture:Boolean = false, priority:int=0.0, useWeakReference:Boolean=false):void
 		{
-			if (type == Event.CONNECT || type == ProgressEvent.SOCKET_DATA)
+			if ((type == Event.CONNECT && !this.connect_redirected) || (type == ProgressEvent.SOCKET_DATA && !this.data_redirected))
 			{
 				this.deferredEventHandlers[type] = {listener:listener,useCapture:useCapture, priority:priority, useWeakReference:useWeakReference};
 			}
